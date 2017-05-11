@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ldy.springmvc.dao.NoticeMapper">
+	<resultMap type="org.ldy.springmvc.model.Notice" id="noticeResultMapper">
+		<id property="id" column="id"/>
+		<result property="createDate" column="create_date"/>
+		<association property="user" column="user_id" select="org.ldy.springmvc.dao.UserMapper.selectUserById"></association>
+	</resultMap>
+	<select id="selectById" parameterType="int" resultMap="noticeResultMapper">
+		select * from notice_inf WHERE id = #{id} limit 1
+	</select>
+	
+	<insert id="save" parameterType="org.ldy.springmvc.model.Notice">
+		insert into notice_inf(title,content,user_id) values(#{title},#{content},#{user.id})
+	</insert>
+	<update id="update" parameterType="org.ldy.springmvc.model.Notice">
+		update notice_inf 
+		<set>
+			<if test='title != null and title!=""'>title = #{title},</if>
+			<if test='content != null and content != ""'>content=#{content}</if>
+			<if test='user != null'>user_id=#{user.id}</if>
+		</set>
+		where id =#{id}
+	</update>
+	<delete id="delById" parameterType="int">
+		delete from notice_inf where id =#{id}
+	</delete>
+	<!-- 这里需要注意从map中直接获取一个对象 -->
+	<select id="selectByPage" parameterType="hashmap" resultMap="noticeResultMapper">
+		select * from notice_inf 
+		<where>
+			<if test='notice.title != null and notice.title!=""'>title like concat("%",#{notice.title},"%")</if>
+			<if test='notice.content != null and notice.content != ""'>and content like concat("%",#{notice.content},"%")</if>	
+		</where>
+		<if test="pageModel != null">limit #{pageModel.firstLimitParam}, #{pageModel.pageSize}</if>	
+	</select>
+	
+	<select id="count" parameterType="hashmap" resultType="int">
+		select count(*) from notice_inf 
+		<where>
+			<if test='title != null and title!=""'>title like concat("%",#{title},"%")</if>
+		</where>
+	</select>
+</mapper>

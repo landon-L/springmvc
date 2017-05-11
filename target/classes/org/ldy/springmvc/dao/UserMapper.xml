@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ldy.springmvc.dao.UserMapper">
+	<!-- 注意这里需要传入两个参数，只是User对象的一部分，可以使用HashMap来封装多个参数 parameterType="hashmap" -->
+	<select id="selectByLoginNameAndPassword"  resultType="org.ldy.springmvc.model.User">
+		select * from user_inf WHERE loginname = #{loginname} and password = #{password}
+	</select>
+	<select id="selectUserById" parameterType="int" resultType="org.ldy.springmvc.model.User">
+		select * from user_inf WHERE id = #{id} limit 1
+	</select> 
+	
+	<!-- 分页查询，这里传入两种参数，一种是查询参数，另一种是分页的信息,结合动态sql，这里可能有问题，这里hashmap和map的区别？？？返回对象是map，和session中selectMap函数的调用关系如何？？     '%${username}%' / -->
+	<select id="selectUser" parameterType="hashmap" resultType="org.ldy.springmvc.model.User">
+		select * from user_inf 
+		<where>
+			<if test="user != null and user.userName != null" >username like concat('%',#{user.userName},'%')</if>
+			<if test="user != null and user.status != null">and status=#{user.status}</if>			
+		</where>	
+		<if test="pageModel != null">limit #{pageModel.firstLimitParam}, #{pageModel.pageSize}</if>		
+	</select>
+	
+	<select id="selectUserCount" parameterType="org.ldy.springmvc.model.User" resultType="int">
+		select count(*) from user_inf
+		<where>
+			<if test="userName != null">username like concat('%', #{userName}, '%')</if>
+			<if test="status != null">and status = #{status}</if>			
+		</where>
+	</select>
+	
+	<sql id="key">
+		<trim suffixOverrides=",">
+			<if test="userName!=null">
+				username,
+			</if>
+			<if test="loginName!=null">
+				loginname,
+			</if>
+			<if test="password!=null">
+				password,
+			</if>
+			<if test="status!=null">
+				status
+			</if>
+		</trim>
+	</sql>
+	<!-- 在不清楚要插入字段的情况下，做插入操作 -->
+	<sql id="value">
+		<trim suffixOverrides=",">
+			<if test="userName!=null">
+				#{userName},
+			</if>
+			<if test="loginName!=null">
+				#{loginName},
+			</if>
+			<if test="password!=null">
+				#{password},
+			</if>
+			<if test="status!=null">
+				#{status}
+			</if>
+		</trim>
+	</sql>
+	<!-- 这里需要注意createdate为日志类型，这里插入是否正确 -->
+	<insert id="saveUser" parameterType="org.ldy.springmvc.model.User" useGeneratedKeys="true">
+		insert into user_inf(
+			<include refid="key"></include>
+		) values(
+			<include refid="value"></include>
+		)
+	</insert>
+	
+	<!-- 这里采用动态sql，来进行 update语句的封装，且创建日期不能更改 -->
+	<update id="updateUser" parameterType="org.ldy.springmvc.model.User">
+		update user_inf 
+		<set>
+			<if test="loginName != null">loginname=#{loginName},</if>
+			<if test="password != null">password=#{password},</if>
+			<if test="status != null">status=#{status},</if>
+			<if test="userName != null">username=#{userName}</if>
+		</set>
+		where id=#{id}
+	</update>
+	
+	<delete id="delUserById" parameterType="int">
+		delete from user_inf where id=#{id}
+	</delete>
+</mapper>

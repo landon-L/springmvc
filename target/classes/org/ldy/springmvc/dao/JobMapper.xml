@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ldy.springmvc.dao.JobMapper">
+	<select id="selectById" parameterType="int" resultType="org.ldy.springmvc.model.Job">
+		select * from job_inf WHERE id = #{id} limit 1
+	</select>
+	<select id="selectAllJob" resultType="org.ldy.springmvc.model.Job">
+		select * from job_inf order by id desc
+	</select>
+	
+	<insert id="save" parameterType="org.ldy.springmvc.model.Job">
+		insert into job_inf(NAME,REMARK) values(#{name},#{remark})
+	</insert>
+	<update id="update" parameterType="org.ldy.springmvc.model.Job">
+		update job_inf 
+		<set>
+			<if test=" name != null">name=#{name},</if>
+			<if test=" remark != null">remark=#{remark}</if>
+		</set>
+		where id =#{id}
+	</update>
+	<delete id="delById" parameterType="int">
+		delete from job_inf where id =#{id}
+	</delete>
+	<!-- 这里需要注意从map中直接获取一个对象 -->
+	<select id="selectByPage" parameterType="hashmap" resultType="org.ldy.springmvc.model.Job">
+		select * from job_inf 
+		<where>
+			<if test='job.name != null and job.name != ""'>name like concat("%",#{job.name},"%") order by id desc</if>				
+		</where>
+		<if test="pageModel != null">limit #{pageModel.firstLimitParam}, #{pageModel.pageSize}</if>	
+	</select>
+	<select id="count" parameterType="org.ldy.springmvc.model.Job" resultType="int">
+		select count(*) from job_inf 
+		<where>
+			<if test="name != null">name like concat("%",#{name},"%") order by id desc</if>
+		</where>
+	</select>
+</mapper>

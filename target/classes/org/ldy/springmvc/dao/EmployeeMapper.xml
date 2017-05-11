@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ldy.springmvc.dao.EmployeeMapper">
+	<select id="selectById" parameterType="int" resultMap="employeeMapper">
+		select * from employee_inf WHERE id = #{id} limit 1
+	</select>
+	<resultMap type="org.ldy.springmvc.model.Employee" id="employeeMapper">
+		<id property="id" column="id"/>		
+		<result property="name" column="name"/>
+		<result property="cardId" column="card_id"/>
+		<result property="address" column="address"/>
+		<result property="postCode" column="post_code"/>
+		<result property="telNumber" column="tel"/>
+		<result property="phoneNumber" column="phone"/>
+		<result property="qq" column="qq_num"/>
+		<result property="email" column="email"/>
+		<result property="sex" column="sex"/>
+		<result property="party" column="party"/>		
+		<result property="race" column="race"/>
+		<result property="education" column="education"/>
+		<result property="speciality" column="speciality"/>
+		<result property="hobby" column="hobby"/>
+		<result property="remark" column="remark"/>
+		
+		<result property="birthday" column="birthday" javaType="java.util.Date"/>
+		<result property="createDate" column="create_date" javaType="java.util.Date"/>
+		
+		<!-- 此处需要思考，如果没有dept_id,如何完成一对一的映射 ?如果不指定javaType会不会自己寻找返回对象类型，完全可以实现啊？-->
+		<!-- 解释：这里是做了一对一的映射，即一个员工对应一个部门;逻辑解释：会把dept_id作为参数执行DeptMapper的selectById的查询，然后把查询到的结果封装到propety表示的dept对象中，对象的类型为javaType
+		这里需要注意：dept_id从哪里来的？并不是DeptMapper.selectById中的列，而是调用该resultMap的sql语句中的列，切记-->
+		<association property="dept" column="dept_id" select="org.ldy.springmvc.dao.DeptMapper.selectById"
+		javaType="org.ldy.springmvc.model.Dept"/>
+		
+		<!-- 接下来做一对一的job映射：即，一个员工只能有一个工作 -->
+		<association property="job" column="job_id" select="org.ldy.springmvc.dao.JobMapper.selectById"
+		javaType="org.ldy.springmvc.model.Job"/>
+	</resultMap>
+	
+	<!-- 返回结果  以还需要好好研究一下？？？-->
+	<select id="selectByPage" parameterType="hashmap" resultMap="employeeMapper">
+		select * from employee_inf 
+		<where>
+			<if test="employee!=null">
+				<if test="employee.job != null and employee.job.id != 0">job_id = #{employee.job.id}</if>
+				<if test='employee.name != null and employee.name != ""'>and name like concat("%",#{employee.name},"%")</if>
+				<if test='employee.cardId != null and employee.cardId != ""'>and card_id like concat("%",#{employee.cardId},"%")</if>
+				<if test="employee.dept != null and employee.dept.id != 0">and dept_id = #{employee.dept.id}</if>
+				<if test="employee.sex != null and employee.sex != 0">and sex = #{employee.sex}</if>
+				<if test='employee.phoneNumber != null and employee.phoneNumber != ""'>and phone like concat("%",#{employee.phoneNumber},"%")</if>					
+			</if>			
+		</where>
+		<if test="pageModel != null">limit #{pageModel.firstLimitParam}, #{pageModel.pageSize}</if>	
+	</select>
+	
+	<sql id="insertKey">
+		<trim suffixOverrides=",">
+			<if test="name!=null">
+				name,
+			</if>
+			<if test="cardId!=null">
+				card_id,
+			</if>
+			<if test="address!=null">
+				address,
+			</if>
+			<if test="postCode!=null">
+				post_code,
+			</if>
+			<if test="telNumber!=null">
+				tel,
+			</if>
+			<if test="phoneNumber!=null">
+				phone,
+			</if>
+			<if test="qq!=null">
+				qq_num,
+			</if>
+			<if test="email!=null">
+				email,
+			</if>
+			<if test="sex!=null">
+				sex,
+			</if>
+			<if test="party!=null">
+				party,
+			</if>
+			<if test="birthday!=null">
+				birthday,
+			</if>
+			<if test="race!=null">
+				race,
+			</if>
+			<if test="education!=null">
+				education,
+			</if>
+			<if test="speciality!=null">
+				speciality,
+			</if>
+			<if test="hobby!=null">
+				hobby,
+			</if>
+			<if test="remark!=null">
+				remark,
+			</if>
+			<if test="createDate!=null">
+				create_date,
+			</if>
+			<if test="dept!=null and dept.id!=null">
+				dept_id,
+			</if>
+			<if test="job!=null and job.id!=null">
+				job_id,
+			</if>
+		</trim>
+	</sql>
+	
+	<sql id="insertValue">
+		<trim suffixOverrides=",">
+			<if test="name!=null">
+				#{name},
+			</if>
+			<if test="cardId!=null">
+				#{cardId},
+			</if>
+			<if test="address!=null">
+				#{address},
+			</if>
+			<if test="postCode!=null">
+				#{postCode},
+			</if>
+			<if test="telNumber!=null">
+				#{telNumber},
+			</if>
+			<if test="phoneNumber!=null">
+				#{phoneNumber},
+			</if>
+			<if test="qq!=null">
+				#{qq},
+			</if>
+			<if test="email!=null">
+				#{email},
+			</if>
+			<if test="sex!=null">
+				#{sex},
+			</if>
+			<if test="party!=null">
+				#{party},
+			</if>
+			<if test="birthday!=null">
+				#{birthday},
+			</if>
+			<if test="race!=null">
+				#{race},
+			</if>
+			<if test="education!=null">
+				#{education},
+			</if>
+			<if test="speciality!=null">
+				#{speciality},
+			</if>
+			<if test="hobby!=null">
+				#{hobby},
+			</if>
+			<if test="remark!=null">
+				#{remark},
+			</if>
+			<if test="createDate!=null">
+				#{createDate},
+			</if>
+			<if test="dept!=null and dept.id!=null">
+				#{dept.id},
+			</if>
+			<if test="job!=null and job.id!=null">
+				#{job.id},
+			</if>
+		</trim>
+	</sql>
+	
+	<insert id="save" parameterType="org.ldy.springmvc.model.Employee">
+		insert into employee_inf(
+			<include refid="insertKey"/>
+		) values(
+			<include refid="insertValue"/>
+		)       
+	</insert> 
+	
+	<sql id="updateStr">
+		<trim suffixOverrides=",">
+			<if test="name!=null">
+				name=#{name},
+			</if>
+			<if test="cardId!=null">
+				card_id=#{cardId},
+			</if>
+			<if test="address!=null">
+				address=#{address},
+			</if>
+			<if test="postCode!=null">
+				post_code=#{postCode},
+			</if>
+			<if test="telNumber!=null">
+				tel=#{telNumber},
+			</if>
+			<if test="phoneNumber!=null">
+				phone=#{phoneNumber},
+			</if>
+			<if test="qq!=null">
+				qq_num=#{qq},
+			</if>
+			<if test="email!=null">
+				email=#{email},
+			</if>
+			<if test="sex!=null">
+				sex=#{sex},
+			</if>
+			<if test="party!=null">
+				party=#{party},
+			</if>
+			<if test="birthday!=null">
+				birthday=#{birthday},
+			</if>
+			<if test="race!=null">
+				race=#{race},
+			</if>
+			<if test="education!=null">
+				education=#{education},
+			</if>
+			<if test="speciality!=null">
+				speciality=#{speciality},
+			</if>
+			<if test="hobby!=null">
+				hobby=#{hobby},
+			</if>
+			<if test="remark!=null">
+				remark=#{remark},
+			</if>
+			<if test="createDate!=null">
+				create_date=#{createDate},
+			</if>
+			<if test="dept!=null and dept.id!=null">
+				dept_id=#{dept.id},
+			</if>
+			<if test="job!=null and job.id!=null">
+				job_id=#{job.id},
+			</if>
+		</trim>
+	</sql>
+	
+	<update id="update" parameterType="org.ldy.springmvc.model.Employee">
+		update employee_inf 
+		<set>
+			<include refid="updateStr"></include>
+		</set>
+		where id =#{id}
+	</update>
+	
+	<delete id="delById" parameterType="int">
+		delete from employee_inf where id =#{id}
+	</delete>
+	
+	<select id="count" parameterType="org.ldy.springmvc.model.Employee" resultType="int">
+		select count(*) from employee_inf 
+		<where>
+			<if test="job != null and job.id != 0">job_id = #{job.id}</if>
+			<if test='name != null and name != ""'>and name like concat("%",#{name},"%")</if>
+			<if test='cardId != null and cardId != ""'>and card_id like concat("%",#{cardId},"%")</if>
+			<if test="dept != null and dept.id != 0">and dept_id = #{dept.id}</if>
+			<if test="sex != null and sex != 0">and sex = #{sex}</if>
+			<if test='phoneNumber != null and phoneNumber != ""'>and phone like concat("%",#{phoneNumber},"%")</if>			
+		</where>
+	</select>
+</mapper>
